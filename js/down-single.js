@@ -87,6 +87,7 @@ function DownloaderMgr()
 	this.fileCur = null;
 	this.parter = null;
 	this.btnSetup = null;//安装控件的按钮
+	this.working = false;
 
 	this.getHtml = function ()
 	{
@@ -216,6 +217,8 @@ function DownloaderMgr()
 	{
 	    this.browser.stopQueue();
 	};
+	this.queue_begin = function (json) { this.working = true; };
+	this.queue_end = function (json) { this.working = false; };
 	this.load_complete = function (json) { this.nat_load = true; if (this.btnSetup) this.btnSetup.hide(); };
 	this.recvMessage = function (str)
 	{
@@ -227,6 +230,8 @@ function DownloaderMgr()
 	    else if (json.name == "down_process") { _this.down_process(json); }
 	    else if (json.name == "down_error") { _this.down_error(json); }
 	    else if (json.name == "down_complete") { _this.down_complete(json); }
+	    else if (json.name == "queue_begin") { _this.queue_begin(json); }
+	    else if (json.name == "queue_end") { _this.queue_end(json); }
 	    else if (json.name == "load_complete") { _this.load_complete(); }
 	};
 
@@ -411,7 +416,7 @@ function DownloaderMgr()
 	{
 	    $(window).bind("beforeunload", function (event)
 	    {
-	        if (_this.queueCount > 0)
+	        if (_this.working)
 	        {
 	            event.returnValue = "您还有程序正在运行，确定关闭？";
 	        }
@@ -419,7 +424,7 @@ function DownloaderMgr()
 
 	    $(window).bind("unload", function ()
 	    {
-	        if (_this.queueCount > 0)
+	        if (_this.working)
 	        {
 	            _this.stop_queue();
 	        }
